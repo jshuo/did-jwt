@@ -79,7 +79,8 @@ export function verifyES256(data: string, signature: string, authenticators: Ver
       recoveredPublicKeyHex = recoveredPublicKey.encode('hex', false);
       recoveredCompressedPublicKeyHex = recoveredPublicKey.encode('hex', true);
 
-      if (recoveredPublicKey) break; // Stop if we successfully recover the public key
+      // if (recoveredPublicKey) break; // Stop if we successfully recover the public key
+      console.log(recoveredCompressedPublicKeyHex)
     } catch (e) {
       continue; // Try the next recovery param
     }
