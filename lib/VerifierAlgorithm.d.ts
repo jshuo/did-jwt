@@ -2,7 +2,7 @@ import type { VerificationMethod } from 'did-resolver';
 import { EcdsaSignature, ECDSASignature } from './util.js';
 export declare function toSignatureObject(signature: string, recoverable?: boolean): EcdsaSignature;
 export declare function toSignatureObject2(signature: string, recoverable?: boolean): ECDSASignature;
-export declare function verifyES256_old(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod;
+export declare function verifyES256_orig(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod;
 export declare function verifyES256(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod;
 export declare function verifyES256K(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod;
 export declare function verifyRecoverableES256K(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod;

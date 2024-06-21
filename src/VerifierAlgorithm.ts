@@ -40,7 +40,7 @@ export function toSignatureObject2(signature: string, recoverable = false): ECDS
   }
 }
 
-export function verifyES256_old(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod {
+export function verifyES256_orig(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod {
   const hash = sha256(data)
   const sig = p256.Signature.fromCompact(toSignatureObject2(signature).compact)
   const fullPublicKeys = authenticators.filter((a: VerificationMethod) => !a.ethereumAddress && !a.blockchainAccountId)
@@ -58,18 +58,26 @@ export function verifyES256_old(data: string, signature: string, authenticators:
   return signer
 }
 
+import * as elliptic from 'elliptic';  // Import the elliptic library
 export function verifyES256(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod {
+
+  const EC = new elliptic.ec('p256');
   const hash = sha256(data)
   const sig = p256.Signature.fromCompact(toSignatureObject2(signature).compact)
+  const sigObj = {
+    r: sig.r.toString(16),
+    s: sig.s.toString(16)
+  };
+
   let recoveredPublicKeyHex = '';
   let recoveredCompressedPublicKeyHex = '';
 
   // Brute-force attempt to recover public key
   for (let recoveryParam = 0; recoveryParam < 4; recoveryParam++) {
     try {
-      const recoveredPublicKey = p256.Point.fromSignature(messageHash, signature, recoveryParam);
-      recoveredPublicKeyHex = recoveredPublicKey.toHex(false);
-      recoveredCompressedPublicKeyHex = recoveredPublicKey.toHex(true);
+      const recoveredPublicKey = EC.recoverPubKey(hash, sigObj, recoveryParam);
+      recoveredPublicKeyHex = recoveredPublicKey.encode('hex', false);
+      recoveredCompressedPublicKeyHex = recoveredPublicKey.encode('hex', true);
 
       if (recoveredPublicKey) break; // Stop if we successfully recover the public key
     } catch (e) {
