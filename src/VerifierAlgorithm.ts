@@ -59,43 +59,41 @@ export function verifyES256_old(data: string, signature: string, authenticators:
 }
 
 export function verifyES256(data: string, signature: string, authenticators: VerificationMethod[]): VerificationMethod {
-  const signatures: ECDSASignature[] = []
-  if (signature.length > 86) {
-    signatures.push(toSignatureObject2(signature, true))
-  } else {
-    const so = toSignatureObject2(signature, false)
-    signatures.push({ ...so, recovery: 0 })
-    signatures.push({ ...so, recovery: 1 })
-  }
   const hash = sha256(data)
+  const sig = p256.Signature.fromCompact(toSignatureObject2(signature).compact)
+  let recoveredPublicKeyHex = '';
+  let recoveredCompressedPublicKeyHex = '';
 
-  const checkSignatureAgainstSigner = (sigObj: ECDSASignature): VerificationMethod | undefined => {
-    const signature = p256.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)
-    const recoveredPublicKey = signature.recoverPublicKey(hash)
-    const recoveredAddress = toEthereumAddress(recoveredPublicKey.toHex(false)).toLowerCase()
-    const recoveredPublicKeyHex = recoveredPublicKey.toHex(false)
-    const recoveredCompressedPublicKeyHex = recoveredPublicKey.toHex(true)
+  // Brute-force attempt to recover public key
+  for (let recoveryParam = 0; recoveryParam < 4; recoveryParam++) {
+    try {
+      const recoveredPublicKey = p256.Point.fromSignature(messageHash, signature, recoveryParam);
+      recoveredPublicKeyHex = recoveredPublicKey.toHex(false);
+      recoveredCompressedPublicKeyHex = recoveredPublicKey.toHex(true);
 
-    return authenticators.find((a: VerificationMethod) => {
-      const { keyBytes } = extractPublicKeyBytes(a)
-      const keyHex = bytesToHex(keyBytes)
-      return (
-        keyHex === recoveredPublicKeyHex ||
-        keyHex === recoveredCompressedPublicKeyHex ||
-        a.ethereumAddress?.toLowerCase() === recoveredAddress ||
-        a.blockchainAccountId?.split('@eip155')?.[0].toLowerCase() === recoveredAddress || // CAIP-2
-        verifyBlockchainAccountId(recoveredPublicKeyHex, a.blockchainAccountId) // CAIP-10
-      )
-    })
+      if (recoveredPublicKey) break; // Stop if we successfully recover the public key
+    } catch (e) {
+      continue; // Try the next recovery param
+    }
   }
 
-  // Find first verification method
-  for (const signature of signatures) {
-    const verificationMethod = checkSignatureAgainstSigner(signature)
-    if (verificationMethod) return verificationMethod
+  if (!recoveredPublicKeyHex) {
+    throw new Error('Public key recovery failed');
   }
-  // If no one found matching
-  throw new Error('invalid_signature: Signature invalid for JWT')
+
+  const fullPublicKeys = authenticators.filter((a: VerificationMethod) => !a.ethereumAddress && !a.blockchainAccountId)
+
+  const signer: VerificationMethod | undefined = fullPublicKeys.find((pk: VerificationMethod) => {
+    try {
+      const { keyBytes } = extractPublicKeyBytes(pk)
+      return p256.verify(sig, hash, keyBytes)
+    } catch (err) {
+      return false
+    }
+  })
+
+  if (!signer) throw new Error('invalid_signature: Signature invalid for JWT')
+  return signer
 }
 
 export function verifyES256K(
