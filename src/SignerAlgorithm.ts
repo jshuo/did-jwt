@@ -6,15 +6,17 @@ function instanceOfEcdsaSignature(object: any): object is EcdsaSignature {
   return typeof object === 'object' && 'r' in object && 's' in object
 }
 
-export function ES256SignerAlg(): SignerAlgorithm {
+export function ES256SignerAlg(recoverable?: boolean): SignerAlgorithm {
   return async function sign(payload: string, signer: Signer): Promise<string> {
     const signature: EcdsaSignature | string = await signer(payload)
     if (instanceOfEcdsaSignature(signature)) {
-      return toJose(signature)
+      return toJose(signature, recoverable)
     } else {
+      if (recoverable && typeof fromJose(signature).recoveryParam === 'undefined') {
+        throw new Error(`not_supported: ES256-R not supported when signer doesn't provide a recovery param`)
+      }
       return signature
     }
-  }
 }
 
 export function ES256KSignerAlg(recoverable?: boolean): SignerAlgorithm {
@@ -47,7 +49,7 @@ interface SignerAlgorithms {
 }
 
 const algorithms: SignerAlgorithms = {
-  ES256: ES256SignerAlg(),
+  ES256: ES256SignerAlg(true),
   ES256K: ES256KSignerAlg(),
   // This is a non-standard algorithm but retained for backwards compatibility
   // see https://github.com/decentralized-identity/did-jwt/issues/146
