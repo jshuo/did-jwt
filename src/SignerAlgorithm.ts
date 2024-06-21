@@ -13,10 +13,11 @@ export function ES256SignerAlg(recoverable?: boolean): SignerAlgorithm {
       return toJose(signature, recoverable)
     } else {
       if (recoverable && typeof fromJose(signature).recoveryParam === 'undefined') {
-        throw new Error(`not_supported: ES256-R not supported when signer doesn't provide a recovery param`)
+        throw new Error(`not_supported: ES256K-R not supported when signer doesn't provide a recovery param`)
       }
       return signature
     }
+  }
 }
 
 export function ES256KSignerAlg(recoverable?: boolean): SignerAlgorithm {
