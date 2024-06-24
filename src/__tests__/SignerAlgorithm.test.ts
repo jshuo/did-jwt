@@ -20,7 +20,7 @@ const ecSigner = EllipticSigner(privateKey)
 const edKp = nacl.sign.keyPair.fromSecretKey(base64ToBytes(ed25519PrivateKey))
 
 // Add tests specific to new ES256 signer for curve secp256r1 / P-256
-const p256privateKey = hexToBytes('736f625c9dda78a94bb16840c82779bb7bc18014b8ede52f0f03429902fc4ba8')
+const p256privateKey = hexToBytes('0x736f625c9dda78a94bb16840c82779bb7bc18014b8ede52f0f03429902fc4ba8')
 const p256publicKey = p256.getPublicKey(p256privateKey)
 const p256signer = ES256Signer(p256privateKey)
 
