@@ -79,7 +79,7 @@ export type KNOWN_KEY_TYPE = 'Secp256k1' | 'Ed25519' | 'X25519' | 'Bls12381G1' |
 export type PublicKeyTypes = Record<KNOWN_JWA, KNOWN_VERIFICATION_METHOD[]>
 
 export const SUPPORTED_PUBLIC_KEY_TYPES: PublicKeyTypes = {
-  ES256: ['JsonWebKey2020', 'Multikey', 'EcdsaSecp256r1VerificationKey2019'],
+  ES256: ['JsonWebKey2020', 'Multikey', 'EcdsaSecp256r1VerificationKey2019', 'EcdsaSecp256k1RecoveryMethod2020'],
   ES256K: [
     'EcdsaSecp256k1VerificationKey2019',
     /**
