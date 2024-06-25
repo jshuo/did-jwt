@@ -11,7 +11,7 @@ import {
 } from './util.js'
 import { verifyBlockchainAccountId } from './blockchains/index.js'
 import { secp256k1 } from '@noble/curves/secp256k1'
-import { p256 } from '@noble/curves/p256'
+import { p256, secp256r1 } from '@noble/curves/p256'
 import { ed25519 } from '@noble/curves/ed25519'
 
 // converts a JOSE signature to it's components
@@ -121,7 +121,7 @@ export function verifyES256K(
   })
 
   if (!signer && blockchainAddressKeys.length > 0) {
-    signer = verifyRecoverableES256K(data, signature, blockchainAddressKeys)
+    signer = verifyRecoverableES256K(data, signature, blockchainAddressKeys, "ES256K-R")
   }
 
   if (!signer) throw new Error('invalid_signature: Signature invalid for JWT')
@@ -131,7 +131,8 @@ export function verifyES256K(
 export function verifyRecoverableES256K(
   data: string,
   signature: string,
-  authenticators: VerificationMethod[]
+  authenticators: VerificationMethod[],
+  ES256:string
 ): VerificationMethod {
   const signatures: ECDSASignature[] = []
   if (signature.length > 86) {
@@ -144,7 +145,13 @@ export function verifyRecoverableES256K(
   const hash = sha256(data)
 
   const checkSignatureAgainstSigner = (sigObj: ECDSASignature): VerificationMethod | undefined => {
-    const signature = secp256k1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)
+    let signature: any; 
+    if (ES256 === "ES256")
+    {  signature = secp256r1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)} 
+    // {  signature = p256.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)} 
+    else if (ES256="ES256K-R") {
+    {  signature = secp256k1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)}    
+    }
     const recoveredPublicKey = signature.recoverPublicKey(hash)
     const recoveredAddress = toEthereumAddress(recoveredPublicKey.toHex(false)).toLowerCase()
     const recoveredPublicKeyHex = recoveredPublicKey.toHex(false)
@@ -191,7 +198,7 @@ export function verifyEd25519(
   return signer
 }
 
-type Verifier = (data: string, signature: string, authenticators: VerificationMethod[]) => VerificationMethod
+type Verifier = (data: string, signature: string, authenticators: VerificationMethod[], ES256: string) => VerificationMethod
 
 type Algorithms = Record<KNOWN_JWA, Verifier>
 
