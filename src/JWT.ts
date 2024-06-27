@@ -347,7 +347,7 @@ export function verifyJWTDecoded(
     if (iss !== payload.iss) throw new Error(`${JWT_ERROR.INVALID_JWT}: multiple issuers`)
 
     try {
-      const result = VerifierAlgorithm(header.alg)(data, signature, pubKeys, header.alg)
+      const result = VerifierAlgorithm(header.alg)(data, signature, pubKeys)
 
       return result
     } catch (e) {
@@ -370,7 +370,7 @@ export function verifyJWSDecoded(
   pubKeys: VerificationMethod | VerificationMethod[]
 ): VerificationMethod {
   if (!Array.isArray(pubKeys)) pubKeys = [pubKeys]
-  const signer: VerificationMethod = VerifierAlgorithm(header.alg)(data, signature, pubKeys, header.alg)
+  const signer: VerificationMethod = VerifierAlgorithm(header.alg)(data, signature, pubKeys)
   return signer
 }
 
