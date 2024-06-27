@@ -121,7 +121,7 @@ export function verifyES256K(
   })
 
   if (!signer && blockchainAddressKeys.length > 0) {
-    signer = verifyRecoverableES256K(data, signature, blockchainAddressKeys, "ES256K-R")
+    signer = verifyRecoverableES256K(data, signature, blockchainAddressKeys)
   }
 
   if (!signer) throw new Error('invalid_signature: Signature invalid for JWT')
@@ -131,8 +131,7 @@ export function verifyES256K(
 export function verifyRecoverableES256K(
   data: string,
   signature: string,
-  authenticators: VerificationMethod[],
-  ES256:string
+  authenticators: VerificationMethod[]
 ): VerificationMethod {
   const signatures: ECDSASignature[] = []
   if (signature.length > 86) {
@@ -145,13 +144,7 @@ export function verifyRecoverableES256K(
   const hash = sha256(data)
 
   const checkSignatureAgainstSigner = (sigObj: ECDSASignature): VerificationMethod | undefined => {
-    let signature: any; 
-    if (ES256 === "ES256")
-    {  signature = secp256r1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)} 
-    // {  signature = p256.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)} 
-    else if (ES256="ES256K-R") {
-    {  signature = secp256k1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)}    
-    }
+    const signature = secp256k1.Signature.fromCompact(sigObj.compact).addRecoveryBit(sigObj.recovery || 0)
     const recoveredPublicKey = signature.recoverPublicKey(hash)
     const recoveredAddress = toEthereumAddress(recoveredPublicKey.toHex(false)).toLowerCase()
     const recoveredPublicKeyHex = recoveredPublicKey.toHex(false)
@@ -198,7 +191,7 @@ export function verifyEd25519(
   return signer
 }
 
-type Verifier = (data: string, signature: string, authenticators: VerificationMethod[], ES256: string) => VerificationMethod
+type Verifier = (data: string, signature: string, authenticators: VerificationMethod[]) => VerificationMethod
 
 type Algorithms = Record<KNOWN_JWA, Verifier>
 
