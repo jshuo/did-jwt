@@ -30,10 +30,10 @@ export function ES256HSMSigner(pufHsmRemoteUrl: string): Signer {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const signature = response.text()
+      const signature = await response.text()
       return toJose({
-        r: leftpad(signature.r.toString(16)),
-        s: leftpad(signature.s.toString(16)),
+        r: leftpad(JSON.parse(signature).r.toString(16)),
+        s: leftpad(JSON.parse(signature).s.toString(16)),
       })
 
     } catch (error) {
