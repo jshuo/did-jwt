@@ -3,6 +3,7 @@ import EllipticSigner from './signers/EllipticSigner.js'
 import NaclSigner from './signers/NaclSigner.js'
 import { ES256KSigner } from './signers/ES256KSigner.js'
 import { ES256Signer } from './signers/ES256Signer.js'
+import { ES256HSMSigner } from './signers/ES256HSMSigner.js'
 import { EdDSASigner } from './signers/EdDSASigner.js'
 import {
   createJWS,
@@ -45,6 +46,7 @@ export {
   EllipticSigner,
   NaclSigner,
   ES256Signer,
+  ES256HSMSigner,
   ES256KSigner,
   EdDSASigner,
   verifyJWT,
