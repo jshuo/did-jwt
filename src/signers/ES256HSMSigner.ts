@@ -27,12 +27,12 @@ export function ES256HSMSigner(pufHsmRemoteUrl: string): Signer {
       const hashArray = sha256(data);
       const hashHex = uint8ArrayToHex(hashArray);
 
-      const response = await fetch(`${pufHsmRemoteUrl}/pufs_p256_sign_js`, {
+      const response = await fetch(`${pufHsmRemoteUrl}pufs_p256_sign_js`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain',
+          'Content-Type': 'application/json',
         },
-        body: hashHex,
+        body: JSON.stringify({ hash: hashHex }),  // Stringify the JSON object
       });
       if (!response.ok) {
         const errorText = await response.text();
